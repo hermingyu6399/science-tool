@@ -1,0 +1,108 @@
+<div>Teachable Machine Image Model</div>
+<button type="button" onclick="init()">Start</button>
+<div id="webcam-container"></div>
+<div id="label-container"></div>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
+<script type="text/javascript">
+    // More API functions here:
+    // https://github.com/googlecreativelab/teachablemachine-community/tree/master/libraries/image
+
+    // the link to your model provided by Teachable Machine export panel
+    const URL = "./my_model/";
+
+    let model, webcam, labelContainer, maxPredictions;
+
+    // Load the image model and setup the webcam
+    async function init() {
+        const modelURL = URL + "model.json";
+        const metadataURL = URL + "metadata.json";
+
+        // load the model and metadata
+        // Refer to tmImage.loadFromFiles() in the API to support files from a file picker
+        // or files from your local hard drive
+        // Note: the pose library adds "tmImage" object to your window (window.tmImage)
+        model = await tmImage.load(modelURL, metadataURL);
+        maxPredictions = model.getTotalClasses();
+
+        // Convenience function to setup a webcam
+        const flip = true; // whether to flip the webcam
+        webcam = new tmImage.Webcam(200, 200, flip); // width, height, flip
+        await webcam.setup(); // request access to the webcam
+        await webcam.play();
+        window.requestAnimationFrame(loop);
+
+        // append elements to the DOM
+        document.getElementById("webcam-container").appendChild(webcam.canvas);
+        labelContainer = document.getElementById("label-container");
+        for (let i = 0; i < maxPredictions; i++) { // and class labels
+            labelContainer.appendChild(document.createElement("div"));
+        }
+    }
+
+    async function loop() {
+        webcam.update(); // update the webcam frame
+        await predict();
+        window.requestAnimationFrame(loop);
+    }
+
+    // run the webcam image through the image model
+    async function predict() {
+        // predict can take in an image, video or canvas html element
+        const prediction = await model.predict(webcam.canvas);
+        if(prediction[0].className=="거름종이" &&  prediction[0].probability.toFixed(2) == 1.00) {
+            labelContainer.childNodes[0].innerHTML = "액체에 섞여 있는 작은 입자를 거를 수 있는 종이."
+        } else if(prediction[1].className=="비커" &&  prediction[1].probability.toFixed(2) == 1.00) {
+            labelContainer.childNodes[0].innerHTML = "실험용 기구로 액체를 담는 용기. 유리, 자기, 철기, 폴리에틸렌 등으로 만듦."
+        } else if(prediction[2].className=="스포이드" &&  prediction[2].probability.toFixed(2) == 1.00) {
+            labelContainer.childNodes[0].innerHTML = "한쪽 끝에는 고무주머니가 달려 있고 다른 쪽 끝은 가늘게 되어 있는 유리관으로 된 화학실험도구를 말함."
+        } else if(prediction[3].className=="스탠드" &&  prediction[3].probability.toFixed(2) == 1.00) {
+            labelContainer.childNodes[0].innerHTML = "화학 실험 기구류를 지지하는 데에 사용되는 철제 스탠드."
+        } else if(prediction[4].className=="집게잡이" &&  prediction[4].probability.toFixed(2) == 1.00) {
+            labelContainer.childNodes[0].innerHTML = "스탠드의 부속품. 링과 스탠드를 연결함."
+        } else if(prediction[5].className=="페트리 접시" &&  prediction[5].probability.toFixed(2) == 1.00) {
+            labelContainer.childNodes[0].innerHTML = "페트리 접시는 생물을 연구하는 실험실에서 자주 사용되는 둥근 접시로 접시를 덮을 수 있는 뚜껑과 함께 한 쌍으로 구성된 실험 기구."
+        } else if(prediction[6].className=="귀체온계" &&  prediction[6].probability.toFixed(2) == 1.00) {
+            labelContainer.childNodes[0].innerHTML = "고막과 그 주변막의 온도를 측정하는 방식으로 신속하고 정확한 체온을 측정할 수 있음."
+        } else if(prediction[7].className=="적외선 온도계" &&  prediction[7].probability.toFixed(2) == 1.00) {
+            labelContainer.childNodes[0].innerHTML = "손이 닿지 않는 곳을 측정할 때 주로 쓰이는 온도계이며, 주로 고체의 온도를 측정함."
+        } else if(prediction[8].className=="알코올 온도계" &&  prediction[8].probability.toFixed(2) == 1.00) {
+            labelContainer.childNodes[0].innerHTML = "알코올의 열팽창 또는 부피팽창을 이용하여 온도를 측정하는 장치."
+        } else if(prediction[9.className=="공기주입마개" &&  prediction[9].probability.toFixed(2) == 1.00) {
+            labelContainer.childNodes[0].innerHTML = "실험 장치로 페트병에 공기를 압축하도록 도와주는 장치."
+        } else if(prediction[10].className=="깔대기" &&  prediction[10].probability.toFixed(2) == 1.00) {
+            labelContainer.childNodes[0].innerHTML = "나팔꽃 모양으로 된, 밑에 구멍이 뚫린 기구로 윗부분은 폭이 넓고 아랫부분은 폭이 좁음. 한 용기에서 다른 용기로 물질을 옮길 때 주로 쓰임."
+        } else if(prediction[11].className=="눈금실린더" &&  prediction[11].probability.toFixed(2) == 1.00) {
+            labelContainer.childNodes[0].innerHTML = "액체의 부피를 측정하는 기구로 용량은 다양하며 유리표면에 ml 단위로 눈금이 새겨져 있음."
+        } else if(prediction[12].className=="보안경" &&  prediction[12].probability.toFixed(2) == 1.00) {
+            labelContainer.childNodes[0].innerHTML = "눈 부위를 보호하기 위해 이용하는 안경을 말함."
+        } else if(prediction[13].className=="삼발이" &&  prediction[13].probability.toFixed(2) == 1.00) {
+            labelContainer.childNodes[0].innerHTML = "가스 버너류로 화학 실험 기구를 가열할 경우에 사용되는 철제의 기구."
+        } else if(prediction[14].className=="쇠그물" &&  prediction[14].probability.toFixed(2) == 1.00) {
+            labelContainer.childNodes[0].innerHTML = "알코올램프와에 끼워 기구의 급격한 온도변화나 일부분의 지나친 가열로 인하여 기구가 손상되거나 급격히 끓어오르는 일이 생기지 않도록 도와주는 실험기구."
+        } else if(prediction[15].className=="알코올램프" &&  prediction[15].probability.toFixed(2) == 1.00) {
+            labelContainer.childNodes[0].innerHTML = "실험실 등에서 주로 사용하는 소형 가열기구."
+        } else if(prediction[16].className=="약숟가락" &&  prediction[16].probability.toFixed(2) == 1.00) {
+            labelContainer.childNodes[0].innerHTML = "약을 제조할 때 사용하는 숟가락."
+        } else if(prediction[17].className=="전자저울" &&  prediction[17].probability.toFixed(2) == 1.00) {
+            labelContainer.childNodes[0].innerHTML = "물체의 무게를 재는 저울에 전자기술을 도입한 저울."
+        } else if(prediction[18].className=="점적병" &&  prediction[18].probability.toFixed(2) == 1.00) {
+            labelContainer.childNodes[0].innerHTML = "약물이나 액즙 따위의 분량을 한 방울씩 떨어뜨려서 헤아리는 기구."
+        } else if(prediction[19].className=="점화기" &&  prediction[19].probability.toFixed(2) == 1.00) {
+            labelContainer.childNodes[0].innerHTML = "과학실험에 이용되며, 불을 붙이기 위하여 전기 불꽃을 내는 기구."
+        } else if(prediction[20].className=="줄자" &&  prediction[20].probability.toFixed(2) == 1.00) {
+            labelContainer.childNodes[0].innerHTML = "길이를 재는 도구."
+        } else if(prediction[21].className=="스톱워치" &&  prediction[21].probability.toFixed(2) == 1.00) {
+            labelContainer.childNodes[0].innerHTML = "여러 가지 활동의 소요시간이나 시간적 기록을 초 이하의 단위로 정밀하게 측정하기 위한 휴대형 시계."
+        } else if(prediction[22].className=="핀셋" &&  prediction[22].probability.toFixed(2) == 1.00) {
+            labelContainer.childNodes[0].innerHTML = "두 개의 강판을 이어서 그 선단으로 물건을 집는 도구."
+        } else {
+            labelContainer.childNodes[0].innerHTML = "알 수 없음"
+        }
+        for (let i = 0; i < maxPredictions; i++) {
+            const classPrediction =
+                prediction[i].className + ": " + prediction[i].probability.toFixed(2);
+            labelContainer.childNodes[i].innerHTML = classPrediction;
+        }
+    }
+</script>
